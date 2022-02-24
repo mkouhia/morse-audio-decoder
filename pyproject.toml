@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "morse-audio-decoder"
+version = "0.0.1"
+description = "Decode morse code from input audio file"
+authors = ["Mikko Kouhia <mikko.kouhia@iki.fi>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.10,<3.11"
+scipy = "^1.8.0"
+numpy = "^1.22.2"
+scikit-learn = "^1.0.2"
+
+[tool.poetry.dev-dependencies]
+jupyter = "^1.0.0"
+matplotlib = "^3.5.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
