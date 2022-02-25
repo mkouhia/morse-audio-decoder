@@ -13,10 +13,8 @@ def main(args: argparse.Namespace) -> None:
 def parse_args(args: list[str]) -> argparse.Namespace:
     """Parse arguments from command line"""
     parser = argparse.ArgumentParser(
-        description="""Decode morse audio
-
-        Read audio file in WAV format, extract the morse code and
-        write translation into standard output."""
+        description="""Read audio file in WAV format, extract the morse code and
+        write translated text into standard output."""
     )
     parser.add_argument("WAVFILE", help="Input audio file")
     return parser.parse_args(args)

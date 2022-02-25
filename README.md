@@ -42,7 +42,7 @@ See program help with command line flag `-h`:
     $ morse-audio-decoder -h
     usage: morse-audio-decoder [-h] WAVFILE
 
-    Read audio file in WAV format, extract the morse code and write translation into standard output
+    Read audio file in WAV format, extract the morse code and write translated text into standard output.
 
     positional arguments:
     WAVFILE     Input audio file
