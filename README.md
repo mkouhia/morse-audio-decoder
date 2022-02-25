@@ -54,7 +54,7 @@ See program help with command line flag `-h`:
 
 ## Technical description
 
-Exploratory data analysis and first program implementation is performed in [this jupyter notebook](eda-notebook).
+Exploratory data analysis and first program implementation is performed in [this jupyter notebook](notebooks/2022-02-23%20Wundernut%2011%20exploration.ipynb).
 
 
 ### Restrictions
@@ -112,5 +112,4 @@ Optionally, html test coverage reports can be produced with
 
 [wundernut]: https://www.wunderdog.fi/wundernut
 [wundernut-11-github]: https://github.com/wunderdogsw/wundernut-vol11
-[eda-notebook]: notebooks/2022-02-23 Wundernut 11 exploration.ipynb
 [poetry-install]: https://python-poetry.org/docs/#installation
