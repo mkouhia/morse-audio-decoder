@@ -5,9 +5,12 @@ import sys
 
 
 def main(args: argparse.Namespace) -> None:
-    # TODO call actual method
-    # decode_morse(args.WAVFILE)
-    ...
+    """Read WAV file, process it and write outputs to stdout
+
+    Args:
+        args (argparse.Namespace): argparse arguments
+    """
+    raise NotImplementedError("TODO call actual method")
 
 
 def parse_args(args: list[str]) -> argparse.Namespace:
@@ -21,5 +24,5 @@ def parse_args(args: list[str]) -> argparse.Namespace:
 
 
 if __name__ == "__main__":
-    args = parse_args(sys.argv[1:])
-    main(*args)
+    program_arguments = parse_args(sys.argv[1:])
+    main(*program_arguments)
