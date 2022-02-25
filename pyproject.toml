@@ -25,7 +25,8 @@ morse-audio-decoder = "morse_audio_decoder.__main__:main"
 
 [tool.coverage.report]
 exclude_lines = [
-    "if __name__ == .__main__.:"
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
 ]
 
 [build-system]
