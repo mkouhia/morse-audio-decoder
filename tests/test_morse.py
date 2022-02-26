@@ -76,6 +76,26 @@ def test_morse_to_char_cached(mocker):
     assert received == expected
 
 
+def test_morse_words(hello_world_morse: str):
+    """Expansion of character and space arrays works as expected"""
+    only_dash_dots = hello_world_morse.replace("|", "").replace(" ", "")
+    dash_dot_characters = np.array(list(only_dash_dots))
+
+    all_same_spaces = hello_world_morse.replace("|", " ")
+    any_space_idx = np.nonzero(np.array(list(all_same_spaces)) == " ")[0]
+    any_space_idx = any_space_idx - np.arange(len(any_space_idx))
+
+    word_space_idx = np.nonzero(np.array(list("HELLO WORLD")) == " ")[0]
+
+    # pylint: disable=protected-access
+    received = MorseCode(np.zeros(10))._morse_words(
+        dash_dot_characters, any_space_idx, word_space_idx
+    )
+    expected = [word.split(" ") for word in hello_world_morse.split("|")]
+
+    assert received == expected
+
+
 def test_translate(hello_world_morse: str):
     """Correct translation is received"""
     morse_words = [word.split(" ") for word in hello_world_morse.split("|")]
