@@ -10,7 +10,9 @@ from morse_audio_decoder.processing import smoothed_power
 @pytest.fixture(name="data")
 def data_fx() -> np.ndarray:
     """Create sample data (1 second of 600 Hz sine wave)"""
-    return (np.sin(np.linspace(0, 600 * np.pi * 2, 44100)) * 2**15).astype(np.int16)
+    return (np.sin(np.linspace(0, 600 * np.pi * 2, 44100)) * (2**15 - 1)).astype(
+        np.int16
+    )
 
 
 def test_smoothed_power_rms(data: np.ndarray):
@@ -20,7 +22,7 @@ def test_smoothed_power_rms(data: np.ndarray):
     """
     received = smoothed_power(data, 44100 // 600 * 4)
     expected = (
-        np.ones(len(data) - 44100 // 600 * 4 + 1) / np.sqrt(2) * 2**15
+        np.ones(len(data) - 44100 // 600 * 4 + 1) / np.sqrt(2) * (2**15 - 1)
     ).astype(np.int16)
 
     assert_array_equal(received // 100, expected // 100)
