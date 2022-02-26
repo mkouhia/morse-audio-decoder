@@ -3,15 +3,9 @@
 from pathlib import Path
 
 import numpy as np
-import pytest
 
 from morse_audio_decoder.io import read_wave
-
-
-@pytest.fixture(name="wav_file")
-def wav_file_fx() -> Path:
-    """Provide path to beep.wav"""
-    return Path(__file__).parent / "fixtures" / "beep.wav"
+from .common_fixtures import wav_file_fx  # pylint: disable=unused-import
 
 
 def test_read_wave_frame_rate(wav_file: Path):
