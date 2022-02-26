@@ -6,7 +6,12 @@ import numpy as np
 import pytest
 
 from morse_audio_decoder.morse import MorseCode
-from .common_fixtures import wav_file_fx  # pylint: disable=unused-import
+
+# pylint: disable=unused-import
+from .common_fixtures import (
+    wav_file_fx,
+    wav_file_8bit_fx,
+)
 
 
 @pytest.fixture(name="hello_world_morse")
@@ -34,6 +39,13 @@ def hello_data_fx(hello_world_morse: str) -> np.ndarray:
 def test_from_wavfile(wav_file: Path):
     """Constructor runs and data is initalized with something"""
     received = MorseCode.from_wavfile(wav_file)
+
+    assert len(received.data) > 0
+
+
+def test_from_wavfile_8bit(wav_file_8bit: Path):
+    """Construction with 8bit input data also works"""
+    received = MorseCode.from_wavfile(wav_file_8bit)
 
     assert len(received.data) > 0
 

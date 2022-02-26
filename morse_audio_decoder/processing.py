@@ -25,7 +25,9 @@ def smoothed_power(
         np.ndarray: smoothed array
     """
     # Convert data in order to avoid truncation errors
-    if np.issubdtype(data.dtype, np.integer):
+    if data.dtype == np.uint8:
+        secure_data = data.astype(np.int16) - 128
+    elif np.issubdtype(data.dtype, np.integer):
         secure_data = data.astype(np.int32) if data.itemsize < 32 else data
     else:
         secure_data = data.astype(np.float32) if data.itemsize < 32 else data

@@ -24,7 +24,8 @@ def read_wave(file: os.PathLike) -> tuple[int, np.ndarray]:
     with wave.open(str(file), "rb") as wav_file:
         buffer = wav_file.readframes(wav_file.getnframes())
         sample_width_bits = wav_file.getsampwidth() * 8
-        data = np.frombuffer(buffer, dtype=f"int{sample_width_bits}")
+        _dtype = "uint8" if sample_width_bits == 8 else f"int{sample_width_bits}"
+        data = np.frombuffer(buffer, dtype=_dtype)
         if wav_file.getnchannels() > 1:
             raise NotImplementedError(
                 "Cannot read WAV file with more than one channels, found: "

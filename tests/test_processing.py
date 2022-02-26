@@ -65,6 +65,21 @@ def test_smoothed_power_rms_float():
     assert_array_almost_equal(received, expected, 3)
 
 
+def test_smoothed_power_uint8():
+    """Uint8 also works?"""
+    data = np.round(
+        (np.sin(np.linspace(0, 600 * np.pi * 2, 44100)) + 1) / 2 * (2**8 - 1)
+    ).astype(np.uint8)
+
+    received = smoothed_power(data, 44100 // 600 * 4)
+    print(len(received))
+    expected = (np.ones(len(data) - 44100 // 600 * 4 + 1) / np.sqrt(2) * 128).astype(
+        np.uint8
+    )
+
+    assert_array_almost_equal(received, expected, 3)
+
+
 def test_smoothed_power_dtype(data):
     """Output dtype is int16 for int16 input"""
     received = smoothed_power(data, 44100 // 600)
