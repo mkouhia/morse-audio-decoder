@@ -72,7 +72,7 @@ class MorseCode:
             return cls._morse_to_char
 
         config = ConfigParser()
-        config.read(Path(__file__).parents[1] / "morse.ini")
+        config.read(Path(__file__).parent / "morse.ini")
         chars = config["characters"]
         cls._morse_to_char = {chars[key]: key.upper() for key in chars}
         return cls._morse_to_char

@@ -4,6 +4,7 @@ version = "0.0.1"
 description = "Decode morse code from input audio file"
 authors = ["Mikko Kouhia <mikko.kouhia@iki.fi>"]
 license = "MIT"
+include = ["morse.ini"]
 
 [tool.poetry.dependencies]
 python = "^3.10,<3.11"
