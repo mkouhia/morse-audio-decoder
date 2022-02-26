@@ -3,6 +3,8 @@
 import argparse
 import sys
 
+from morse_audio_decoder.morse import MorseCode
+
 
 def main(args: argparse.Namespace) -> None:
     """Read WAV file, process it and write outputs to stdout
@@ -10,7 +12,7 @@ def main(args: argparse.Namespace) -> None:
     Args:
         args (argparse.Namespace): argparse arguments
     """
-    raise NotImplementedError("TODO call actual method")
+    return MorseCode.from_wavfile(args.WAVFILE).decode()
 
 
 def parse_args(args: list[str]) -> argparse.Namespace:

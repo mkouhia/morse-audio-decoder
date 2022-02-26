@@ -43,3 +43,11 @@ class MorseCode:
         square_data = squared_signal(envelope)
 
         return cls(square_data)
+
+    def decode(self) -> str:
+        """Decode data
+
+        Returns:
+            str: Morse code content, in plain language
+        """
+        raise NotImplementedError()
