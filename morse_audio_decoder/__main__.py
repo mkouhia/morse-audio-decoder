@@ -1,18 +1,25 @@
 """Command line interface"""
 
 import argparse
+import os
+from pathlib import Path
 import sys
 
 from morse_audio_decoder.morse import MorseCode
 
 
-def main(args: argparse.Namespace) -> None:
+def main(file: os.PathLike) -> None:
     """Read WAV file, process it and write outputs to stdout
 
     Args:
-        args (argparse.Namespace): argparse arguments
+        file (os.PathLike): path to WAV file
     """
-    return MorseCode.from_wavfile(args.WAVFILE).decode()
+    if not Path(file).exists():
+        sys.stderr.write(f"File {file} not found, exiting.\n")
+        sys.exit(1)
+
+    decoded = MorseCode.from_wavfile(file).decode()
+    sys.stdout.write(decoded + "\n")
 
 
 def parse_args(args: list[str]) -> argparse.Namespace:
@@ -27,4 +34,4 @@ def parse_args(args: list[str]) -> argparse.Namespace:
 
 if __name__ == "__main__":
     program_arguments = parse_args(sys.argv[1:])
-    main(*program_arguments)
+    main(program_arguments.WAVFILE)

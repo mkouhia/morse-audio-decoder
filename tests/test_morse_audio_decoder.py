@@ -1,7 +1,10 @@
 """Main tests"""
 
-from argparse import ArgumentParser
+from pathlib import Path
+
 import numpy as np
+import pytest
+
 from morse_audio_decoder import __version__
 from morse_audio_decoder.__main__ import main, parse_args
 
@@ -14,10 +17,12 @@ def test_version():
     assert __version__ == "0.0.1"
 
 
-def test_main(mocker):
+def test_main(mocker, tmp_path: Path, capsys):
     """MorseCode instance is created and decode is called"""
+    file_path = tmp_path / "any_file"
+    file_path.touch()
 
-    expected = "HELLO TEST"
+    expected = "HELLO TEST\n"
 
     # pylint: disable=all
     class TestClass:
@@ -33,12 +38,17 @@ def test_main(mocker):
 
     mocker.patch("morse_audio_decoder.__main__.MorseCode", TestClass)
 
-    parser = ArgumentParser()
-    parser.add_argument("WAVFILE")
-    args = parser.parse_args(["file.wav"])
-    print(args)
-    received = main(args)
-    assert received == expected
+    main(file_path)
+    captured = capsys.readouterr()
+    assert captured.out == expected
+
+
+def test_main_not_existing(capsys):
+    """When file is not existing, exit and print to stderr"""
+    with pytest.raises(SystemExit):
+        main("not-existing-filename")
+    captured = capsys.readouterr()
+    assert len(captured.err) > 0
 
 
 def test_parser_wavfile():
