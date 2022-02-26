@@ -34,3 +34,22 @@ def test_decode(hello_data: np.ndarray):
     """Dummy data decoding works"""
     received = MorseCode(hello_data).decode()
     assert received == "HELLO WORLD"
+
+
+def test_morse_to_char():
+    """All alphanumeric characters and full stop are in values"""
+    received = MorseCode(np.empty(1)).morse_to_char
+    expected_chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ."
+
+    assert set(received.values()).issuperset(expected_chars)
+
+
+def test_morse_to_char_cached():
+    """Cached dictionary is read from MorseCode._morse_to_char"""
+    morse = MorseCode(np.empty(1))
+    expected = {"..": "A"}
+    MorseCode._morse_to_char = expected  # pylint: disable=protected-access
+
+    received = morse.morse_to_char
+
+    assert received == expected

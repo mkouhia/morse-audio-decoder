@@ -1,6 +1,9 @@
 """Morse code handling"""
 
+from configparser import ConfigParser
 import os
+from pathlib import Path
+
 import numpy as np
 
 from .io import read_wave
@@ -14,6 +17,8 @@ class MorseCode:
     Attributes:
         data (np.ndarray): 1D binary array, representing morse code in time
     """
+
+    _morse_to_char: dict = None
 
     def __init__(self, data: np.ndarray):
         """Initialize code with binary data
@@ -51,3 +56,23 @@ class MorseCode:
             str: Morse code content, in plain language
         """
         raise NotImplementedError()
+
+    @classmethod
+    @property
+    def morse_to_char(cls) -> dict[str, str]:
+        """Morse to character dictionary
+
+        Read mappings from morse.ini and store them to class variable. Later,
+        return directly from this class variable.
+
+        Returns:
+            dict[str, str]: Mapping of morse character string to letter
+        """
+        if cls._morse_to_char is not None:
+            return cls._morse_to_char
+
+        config = ConfigParser()
+        config.read(Path(__file__).parents[1] / "morse.ini")
+        chars = config["characters"]
+        cls._morse_to_char = {chars[key]: key.upper() for key in chars}
+        return cls._morse_to_char
