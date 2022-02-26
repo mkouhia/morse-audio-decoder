@@ -9,15 +9,24 @@ from morse_audio_decoder.morse import MorseCode
 from .common_fixtures import wav_file_fx  # pylint: disable=unused-import
 
 
+@pytest.fixture(name="hello_world_morse")
+def hello_world_morse_fx() -> str:
+    """HELLO WORLD string in morse"""
+    return ".... . .-.. .-.. ---|.-- --- .-. .-.. -.."
+
+
 @pytest.fixture(name="hello_data")
-def hello_data_fx() -> np.ndarray:
+def hello_data_fx(hello_world_morse: str) -> np.ndarray:
     """Add dummy data for HELLO WORLD string"""
-    hello_world_str = "|.... . .-.. .-.. ---|.-- --- .-. .-.. -..|"
     hello_world_str = (
-        hello_world_str.replace(" ", "00")
-        .replace("|", "000000")
-        .replace(".", "10")
-        .replace("-", "1110")
+        "000"
+        + (
+            hello_world_morse.replace(" ", "00")
+            .replace("|", "000000")
+            .replace(".", "10")
+            .replace("-", "1110")
+        )
+        + "00"
     )
     return np.repeat(np.array([int(i) for i in hello_world_str]), 44100 * 60 // 1000)
 
@@ -44,12 +53,23 @@ def test_morse_to_char():
     assert set(received.values()).issuperset(expected_chars)
 
 
-def test_morse_to_char_cached():
+def test_morse_to_char_cached(mocker):
     """Cached dictionary is read from MorseCode._morse_to_char"""
-    morse = MorseCode(np.empty(1))
     expected = {"..": "A"}
-    MorseCode._morse_to_char = expected  # pylint: disable=protected-access
+    mocker.patch("morse_audio_decoder.morse.MorseCode._morse_to_char", expected)
+    morse = MorseCode(np.empty(1))
 
     received = morse.morse_to_char
+
+    assert received == expected
+
+
+def test_translate(hello_world_morse: str):
+    """Correct translation is received"""
+    morse_words = [word.split(" ") for word in hello_world_morse.split("|")]
+
+    # pylint: disable=protected-access
+    received = MorseCode(np.zeros(10))._translate(morse_words)
+    expected = "HELLO WORLD"
 
     assert received == expected

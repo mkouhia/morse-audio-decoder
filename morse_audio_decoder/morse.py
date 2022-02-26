@@ -76,3 +76,17 @@ class MorseCode:
         chars = config["characters"]
         cls._morse_to_char = {chars[key]: key.upper() for key in chars}
         return cls._morse_to_char
+
+    def _translate(self, morse_words: list[list[str]]) -> str:
+        """Translate list of morse-coded words to string
+
+        Args:
+            morse_words (list[list[str]]): List of words, having list of characters.
+                The characters are in morse-coded dash/dot form, e.g. '.--' for 'w'
+
+        Returns:
+            str: Message contained in input
+        """
+        char_dict = self.morse_to_char
+        char_lists = [[char_dict.get(j) for j in i] for i in morse_words]
+        return " ".join(["".join(word) for word in char_lists])
