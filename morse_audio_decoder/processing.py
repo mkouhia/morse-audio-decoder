@@ -37,3 +37,19 @@ def smoothed_power(
     squared = np.power(secure_data, 2)
 
     return np.sqrt(np.convolve(squared, window, mode)).astype(data.dtype)
+
+
+def squared_signal(data: np.ndarray, threshold: int | float = None) -> np.ndarray:
+    """Convert signal to binary 0/1 based on threshold value
+
+    Args:
+        data (np.ndarray): Input data
+        threshold (int | float, optional): Threshold value. All values in data
+            that are smaller than threshold value are converted to 0, larger values
+            are converted to 1. Defaults 0.5 * max(data).
+
+    Returns:
+        np.ndarray: Binary array of int8 dtype, same shape as original
+    """
+    threshold = threshold or 0.5 * np.max(data)
+    return np.where(data > threshold, 1, 0).astype(np.int8)
