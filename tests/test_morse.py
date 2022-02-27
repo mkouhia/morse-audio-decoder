@@ -37,6 +37,25 @@ def hello_data_fx(hello_world_morse: str) -> np.ndarray:
     return np.repeat(np.array([int(i) for i in hello_world_str]), 44100 * 60 // 1000)
 
 
+@pytest.fixture(name="off_samples")
+def off_samples_fx(hello_world_morse: str):
+    """Serve off samples for tests"""
+    pairs = [
+        hello_world_morse.replace("-", ".")[i : i + 2]
+        for i in range(len(hello_world_morse) - 1)
+    ]
+    pair_off_lens = {"..": 1, ". ": 3, ".|": 7}
+    expected_off = (
+        np.array(
+            list(map(pair_off_lens.get, [p for p in pairs if p not in [" .", "|."]]))
+        )
+        * 44100
+        * 60
+        // 1000
+    )
+    return expected_off
+
+
 def test_from_wavfile(wav_file: Path):
     """Constructor runs and data is initalized with something"""
     received = MorseCode.from_wavfile(wav_file)
@@ -77,35 +96,51 @@ def test_morse_to_char_cached(mocker):
     assert received == expected
 
 
-def test_on_off_samples(hello_data: np.ndarray, hello_world_morse: str):
+def test_on_off_samples(
+    hello_data: np.ndarray, hello_world_morse: str, off_samples: np.ndarray
+):
     """Count of samples is detected correctly"""
-    _one_cycle = 44100 * 60 // 1000
-
     on_str = (
         hello_world_morse.replace(" ", "")
         .replace("|", "")
         .replace(".", "1")
         .replace("-", "3")
     )
-    expected_on = np.array([int(i) for i in on_str]) * _one_cycle
-
-    pairs = [
-        hello_world_morse.replace("-", ".")[i : i + 2]
-        for i in range(len(hello_world_morse) - 1)
-    ]
-    pair_off_lens = {"..": 1, ". ": 3, ".|": 7}
-    expected_off = (
-        np.array(
-            list(map(pair_off_lens.get, [p for p in pairs if p not in [" .", "|."]]))
-        )
-        * _one_cycle
-    )
+    expected_on = np.array([int(i) for i in on_str]) * 44100 * 60 // 1000
 
     # pylint: disable=protected-access
     received_on, received_off = MorseCode(hello_data)._on_off_samples()
 
     assert_array_equal(received_on, expected_on)
-    assert_array_equal(received_off, expected_off)
+    assert_array_equal(received_off, off_samples)
+
+
+def test_dash_dot_characters(hello_world_morse: str):
+    """Sample length to dash/dot conversion"""
+    dash_dots = hello_world_morse.replace(" ", "").replace("|", "")
+
+    on_str = dash_dots.replace(".", "1").replace("-", "3")
+    on_samples = np.array([int(i) for i in on_str]) * 44100 * 60 // 1000
+
+    # pylint: disable=protected-access
+    received = MorseCode(np.empty(1))._dash_dot_characters(on_samples)
+    expected = np.array(list(dash_dots))
+
+    assert_array_equal(received, expected)
+
+
+def test_break_spaces(hello_world_morse: str, off_samples: np.ndarray):
+    """Space and word breaks are found correctly"""
+    all_same_spaces = hello_world_morse.replace("|", " ")
+    char_break_idx = np.nonzero(np.array(list(all_same_spaces)) == " ")[0]
+    char_break_idx = char_break_idx - np.arange(len(char_break_idx))
+
+    word_space_idx = np.nonzero(np.array(list("HELLO WORLD")) == " ")[0]
+
+    received_cb, received_wb = MorseCode(np.empty(1))._break_spaces(off_samples)
+
+    assert_array_equal(received_cb, char_break_idx)
+    assert_array_equal(received_wb, word_space_idx)
 
 
 def test_morse_words(hello_world_morse: str):
@@ -114,14 +149,14 @@ def test_morse_words(hello_world_morse: str):
     dash_dot_characters = np.array(list(only_dash_dots))
 
     all_same_spaces = hello_world_morse.replace("|", " ")
-    any_space_idx = np.nonzero(np.array(list(all_same_spaces)) == " ")[0]
-    any_space_idx = any_space_idx - np.arange(len(any_space_idx))
+    char_break_idx = np.nonzero(np.array(list(all_same_spaces)) == " ")[0]
+    char_break_idx = char_break_idx - np.arange(len(char_break_idx))
 
     word_space_idx = np.nonzero(np.array(list("HELLO WORLD")) == " ")[0]
 
     # pylint: disable=protected-access
     received = MorseCode(np.zeros(10))._morse_words(
-        dash_dot_characters, any_space_idx, word_space_idx
+        dash_dot_characters, char_break_idx, word_space_idx
     )
     expected = [word.split(" ") for word in hello_world_morse.split("|")]
 

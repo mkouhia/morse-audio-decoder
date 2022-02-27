@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 
 import numpy as np
+from sklearn.cluster import KMeans
 
 from .io import read_wave
 from .processing import smoothed_power, squared_signal
@@ -101,6 +102,72 @@ class MorseCode:
         off_samples = rising_idx[1:] - falling_idx[: len(falling_idx) - 1]
 
         return on_samples, off_samples
+
+    @staticmethod
+    def _dash_dot_characters(on_samples: np.ndarray) -> np.ndarray:
+        """Convert array of ON sample lengths to array of dashes and dots
+
+        NOTE: It is expected, that the signal contains exactly two distinct
+        lengths - those for a dash and for a dot. If the keying speed varies,
+        or either character does not exist, then this method will fail.
+
+        Args:
+            on_samples (np.ndarray): number of samples in each ON period in
+                the signal. This comes from `MorseCode._on_off_samples`.
+
+        Returns:
+            np.ndarray: array of dashes and dots, of object (string) type
+        """
+        X_on = on_samples.reshape(-1, 1)
+        clustering = KMeans(n_clusters=2, random_state=0).fit(X_on)
+
+        cluster_sort_idx = np.argsort(clustering.cluster_centers_.flatten()).tolist()
+        dot_label = cluster_sort_idx.index(0)
+        dash_label = cluster_sort_idx.index(1)
+
+        dash_dot_map = {dot_label: ".", dash_label: "-"}
+        dash_dot_characters = np.vectorize(dash_dot_map.get)(clustering.labels_)
+
+        return dash_dot_characters
+
+    @staticmethod
+    def _break_spaces(off_samples: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        """Convert array of OFF sample lengths to indices for char/word breaks
+
+        NOTE: It is expected, that the signal contains exactly three distinct
+        space lengths: inter-character space, character space and word space.
+        If the keying speed varies, or word spaces do not exist, then this
+        method will fail.
+
+        Args:
+            off_samples (np.ndarray): number of samples in each OFF period in
+                the signal. This comes from `MorseCode._on_off_samples`.
+
+        Returns:
+            tuple[np.ndarray, np.ndarray]: indices for breaking dash/dot
+                character array from `MorseCode._dash_dot_characters`. First
+                array contains positions, where character breaks should be.
+                Second array contains positions, where word spaces should be in
+                the list of already resolved morse characters.
+        """
+        X_off = off_samples.reshape(-1, 1)
+        clustering = KMeans(n_clusters=3, random_state=0).fit(X_off)
+
+        cluster_sort_idx = np.argsort(clustering.cluster_centers_.flatten()).tolist()
+
+        # This index breaks dashes/dots into characters
+        intra_space_label = cluster_sort_idx.index(0)
+        char_break_idx = np.nonzero(clustering.labels_ != intra_space_label)[0] + 1
+
+        char_or_word_space_arr = clustering.labels_[
+            clustering.labels_ != intra_space_label
+        ]
+
+        # This index breaks character list into word lists
+        word_space_label = cluster_sort_idx.index(2)
+        word_space_idx = np.nonzero(char_or_word_space_arr == word_space_label)[0] + 1
+
+        return char_break_idx, word_space_idx
 
     @staticmethod
     def _morse_words(
