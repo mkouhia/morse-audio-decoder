@@ -118,8 +118,8 @@ class MorseCode:
         Returns:
             np.ndarray: array of dashes and dots, of object (string) type
         """
-        X_on = on_samples.reshape(-1, 1)
-        clustering = KMeans(n_clusters=2, random_state=0).fit(X_on)
+        column_vec = on_samples.reshape(-1, 1)
+        clustering = KMeans(n_clusters=2, random_state=0).fit(column_vec)
 
         cluster_sort_idx = np.argsort(clustering.cluster_centers_.flatten()).tolist()
         dot_label = cluster_sort_idx.index(0)
@@ -150,8 +150,8 @@ class MorseCode:
                 Second array contains positions, where word spaces should be in
                 the list of already resolved morse characters.
         """
-        X_off = off_samples.reshape(-1, 1)
-        clustering = KMeans(n_clusters=3, random_state=0).fit(X_off)
+        column_vec = off_samples.reshape(-1, 1)
+        clustering = KMeans(n_clusters=3, random_state=0).fit(column_vec)
 
         cluster_sort_idx = np.argsort(clustering.cluster_centers_.flatten()).tolist()
 
