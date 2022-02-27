@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import numpy as np
+from numpy.testing import assert_array_equal
 import pytest
 
 from morse_audio_decoder.morse import MorseCode
@@ -74,6 +75,37 @@ def test_morse_to_char_cached(mocker):
     received = morse.morse_to_char
 
     assert received == expected
+
+
+def test_on_off_samples(hello_data: np.ndarray, hello_world_morse: str):
+    """Count of samples is detected correctly"""
+    _one_cycle = 44100 * 60 // 1000
+
+    on_str = (
+        hello_world_morse.replace(" ", "")
+        .replace("|", "")
+        .replace(".", "1")
+        .replace("-", "3")
+    )
+    expected_on = np.array([int(i) for i in on_str]) * _one_cycle
+
+    pairs = [
+        hello_world_morse.replace("-", ".")[i : i + 2]
+        for i in range(len(hello_world_morse) - 1)
+    ]
+    pair_off_lens = {"..": 1, ". ": 3, ".|": 7}
+    expected_off = (
+        np.array(
+            list(map(pair_off_lens.get, [p for p in pairs if p not in [" .", "|."]]))
+        )
+        * _one_cycle
+    )
+
+    # pylint: disable=protected-access
+    received_on, received_off = MorseCode(hello_data)._on_off_samples()
+
+    assert_array_equal(received_on, expected_on)
+    assert_array_equal(received_off, expected_off)
 
 
 def test_morse_words(hello_world_morse: str):

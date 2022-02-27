@@ -77,6 +77,31 @@ class MorseCode:
         cls._morse_to_char = {chars[key]: key.upper() for key in chars}
         return cls._morse_to_char
 
+    def _on_off_samples(self) -> tuple[np.ndarray, np.ndarray]:
+        """Calculate signal timings
+
+        Locate rising and falling edges in square wave at self.data. Calculate
+        number of samples in each ON / OFF period.
+
+        Returns:
+            tuple[np.ndarray, np.ndarray]: on_samples, off_samples. Note that
+                in addition to character and word spaces, off_samples also
+                includes inter-character spaces.
+        """
+        square_diff = np.diff(self.data)
+
+        rising_idx = np.nonzero(square_diff == 1)[0]
+        falling_idx = np.nonzero(square_diff == -1)[0]
+
+        # Case: data starts with ON
+        if falling_idx[0] < rising_idx[0]:
+            rising_idx = np.insert(rising_idx, 0, 0)
+
+        on_samples = falling_idx - rising_idx
+        off_samples = rising_idx[1:] - falling_idx[: len(falling_idx) - 1]
+
+        return on_samples, off_samples
+
     @staticmethod
     def _morse_words(
         raw_dash_dot: np.ndarray,
