@@ -80,7 +80,6 @@ Requirements:
 
 Dependencies:
 - Numpy
-- Scipy
 - Scikit-learn
 
 1. Install dependencies with `poetry install`
