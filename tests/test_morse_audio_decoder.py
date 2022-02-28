@@ -43,12 +43,10 @@ def test_main(mocker, tmp_path: Path, capsys):
     assert captured.out == expected
 
 
-def test_main_not_existing(capsys):
-    """When file is not existing, exit and print to stderr"""
-    with pytest.raises(SystemExit):
+def test_main_not_existing():
+    """When file is not existing, raise warning"""
+    with pytest.raises(UserWarning):
         main("not-existing-filename")
-    captured = capsys.readouterr()
-    assert len(captured.err) > 0
 
 
 def test_parser_wavfile():

@@ -15,11 +15,11 @@ def main(file: os.PathLike) -> None:
         file (os.PathLike): path to WAV file
 
     Raises:
-        UserWarning: If dash/dot separation cannot be made unambiguosly.
+        UserWarning: If dash/dot separation cannot be made unambiguosly,
+            or if input file does not exist.
     """
     if not Path(file).exists():
-        sys.stderr.write(f"File {file} not found, exiting.\n")
-        sys.exit(1)
+        raise UserWarning(f"File {file} not found, exiting.")
 
     decoded = MorseCode.from_wavfile(file).decode()
     sys.stdout.write(decoded + "\n")
