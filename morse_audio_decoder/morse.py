@@ -3,9 +3,12 @@
 from configparser import ConfigParser
 import os
 from pathlib import Path
+import sys
+import warnings
 
 import numpy as np
-from sklearn.cluster import KMeans
+import sklearn.cluster
+import sklearn.exceptions
 
 from .io import read_wave
 from .processing import smoothed_power, squared_signal
@@ -21,13 +24,15 @@ class MorseCode:
 
     _morse_to_char: dict = None
 
-    def __init__(self, data: np.ndarray):
+    def __init__(self, data: np.ndarray, sample_rate: int = None):
         """Initialize code with binary data
 
         Args:
             data (np.ndarray): 1D binary array, representing morse code in time
+            sample_rate (np.ndarray): Audio sampling rate. Default: None.
         """
         self.data = data
+        self.sample_rate = sample_rate
 
     @classmethod
     def from_wavfile(cls, file: os.PathLike) -> "MorseCode":
@@ -55,6 +60,9 @@ class MorseCode:
 
         Returns:
             str: Morse code content, in plain language
+
+        Raises:
+            UserWarning: dash/dot separation cannot be made unambiguosly
         """
         on_samples, off_samples = self._on_off_samples()
         dash_dot_chars = self._dash_dot_characters(on_samples)
@@ -93,6 +101,8 @@ class MorseCode:
                 in addition to character and word spaces, off_samples also
                 includes inter-character spaces.
         """
+        if len(self.data) == 0:
+            return np.array([], dtype="int"), np.array([], dtype="int")
         square_diff = np.diff(self.data)
 
         rising_idx = np.nonzero(square_diff == 1)[0]
@@ -111,27 +121,57 @@ class MorseCode:
 
         return on_samples, off_samples
 
-    @staticmethod
-    def _dash_dot_characters(on_samples: np.ndarray) -> np.ndarray:
+    def _dash_dot_characters(self, on_samples: np.ndarray) -> np.ndarray:
         """Convert array of ON sample lengths to array of dashes and dots
 
         NOTE: It is expected, that the signal contains exactly two distinct
         lengths - those for a dash and for a dot. If the keying speed varies,
         or either character does not exist, then this method will fail.
 
+        As a circumvention, 20 WPM is used as a guess
+
         Args:
             on_samples (np.ndarray): number of samples in each ON period in
                 the signal. This comes from `MorseCode._on_off_samples`.
 
+        Raises:
+            UserWarning: if there are no distinct clusters (only dashes
+                or dots in the input), and self.sample_rate is not set; thus
+                no guess can be made on dash/dot.
+
         Returns:
             np.ndarray: array of dashes and dots, of object (string) type
         """
-        column_vec = on_samples.reshape(-1, 1)
-        clustering = KMeans(n_clusters=2, random_state=0).fit(column_vec)
+        if len(on_samples) == 0:
+            return np.array([], dtype="str")
+        n_clusters = min(2, len(on_samples))
 
-        cluster_sort_idx = np.argsort(clustering.cluster_centers_.flatten()).tolist()
-        dot_label = cluster_sort_idx.index(0)
-        dash_label = cluster_sort_idx.index(1)
+        column_vec = on_samples.reshape(-1, 1)
+
+        # Suppress ConvergenceWarning on too low distinct clusters; fix it later
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            clustering = sklearn.cluster.KMeans(
+                n_clusters=n_clusters, random_state=0
+            ).fit(column_vec)
+        distinct_clusters = len(set(clustering.labels_))
+
+        # It is not clear whether dash or dot -- use (20 wpm dot length) * 1.5 as limit
+        if distinct_clusters == 1:
+            if self.sample_rate is None:
+                raise UserWarning("Cannot determine whether dash or dot")
+            sys.stderr.write("WARNING: too little data, guessing based on 20 wpm")
+
+            sample_length = clustering.cluster_centers_[0]
+            is_dot = sample_length / (self.sample_rate * 60 / 1000) < 1.5
+            dot_label = 0 if is_dot else 1
+            dash_label = 1 if is_dot else 0
+        else:
+            cluster_sort_idx = np.argsort(
+                clustering.cluster_centers_.flatten()
+            ).tolist()
+            dot_label = cluster_sort_idx.index(0)
+            dash_label = cluster_sort_idx.index(1)
 
         dash_dot_map = {dot_label: ".", dash_label: "-"}
         dash_dot_characters = np.vectorize(dash_dot_map.get)(clustering.labels_)
@@ -158,8 +198,19 @@ class MorseCode:
                 Second array contains positions, where word spaces should be in
                 the list of already resolved morse characters.
         """
+        if len(off_samples) == 0:
+            return np.array([], dtype="int"), np.array([], dtype="int")
+        n_clusters = min(3, len(off_samples))
+
         column_vec = off_samples.reshape(-1, 1)
-        clustering = KMeans(n_clusters=3, random_state=0).fit(column_vec)
+
+        # Suppress ConvergenceWarning on too low distinct clusters; fix it later
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            clustering = sklearn.cluster.KMeans(
+                n_clusters=n_clusters, random_state=0
+            ).fit(column_vec)
+        distinct_clusters = len(set(clustering.labels_))
 
         cluster_sort_idx = np.argsort(clustering.cluster_centers_.flatten()).tolist()
 
@@ -172,8 +223,13 @@ class MorseCode:
         ]
 
         # This index breaks character list into word lists
-        word_space_label = cluster_sort_idx.index(2)
-        word_space_idx = np.nonzero(char_or_word_space_arr == word_space_label)[0] + 1
+        if distinct_clusters == 3:
+            word_space_label = cluster_sort_idx.index(2)
+            word_space_idx = (
+                np.nonzero(char_or_word_space_arr == word_space_label)[0] + 1
+            )
+        else:
+            word_space_idx = np.array([], dtype="int")
 
         return char_break_idx, word_space_idx
 
@@ -223,5 +279,5 @@ class MorseCode:
             str: Message contained in input
         """
         char_dict = self.morse_to_char
-        char_lists = [[char_dict.get(j) for j in i] for i in morse_words]
+        char_lists = [[char_dict.get(j, "") for j in i] for i in morse_words]
         return " ".join(["".join(word) for word in char_lists])

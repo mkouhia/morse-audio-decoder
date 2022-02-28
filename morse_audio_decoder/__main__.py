@@ -13,6 +13,9 @@ def main(file: os.PathLike) -> None:
 
     Args:
         file (os.PathLike): path to WAV file
+
+    Raises:
+        UserWarning: If dash/dot separation cannot be made unambiguosly.
     """
     if not Path(file).exists():
         sys.stderr.write(f"File {file} not found, exiting.\n")
@@ -34,4 +37,8 @@ def parse_args(args: list[str]) -> argparse.Namespace:
 
 if __name__ == "__main__":
     program_arguments = parse_args(sys.argv[1:])
-    main(program_arguments.WAVFILE)
+    try:
+        main(program_arguments.WAVFILE)
+    except UserWarning as err:
+        sys.stderr.write(f"{err}\n")
+        sys.exit(1)

@@ -24,17 +24,21 @@ def hello_world_morse_fx() -> str:
 @pytest.fixture(name="hello_data")
 def hello_data_fx(hello_world_morse: str) -> np.ndarray:
     """Add dummy data for HELLO WORLD string"""
-    hello_world_str = (
-        "000"
-        + (
-            hello_world_morse.replace(" ", "00")
-            .replace("|", "000000")
-            .replace(".", "10")
-            .replace("-", "1110")
-        )
-        + "00"
+    return _dash_dot_to_square_data(hello_world_morse)
+
+
+def _dash_dot_to_square_data(dash_dot_str: str, padding=True) -> np.ndarray:
+    binary_str = (
+        dash_dot_str.replace(" ", "00")
+        .replace("|", "000000")
+        .replace(".", "10")
+        .replace("-", "1110")
     )
-    return np.repeat(np.array([int(i) for i in hello_world_str]), 44100 * 60 // 1000)
+    if padding:
+        binary_str = "000" + binary_str + "00"
+    else:
+        binary_str = binary_str[:-1]
+    return np.repeat(np.array([int(i) for i in binary_str]), 44100 * 60 // 1000)
 
 
 @pytest.fixture(name="off_samples")
@@ -70,10 +74,48 @@ def test_from_wavfile_8bit(wav_file_8bit: Path):
     assert len(received.data) > 0
 
 
-def test_decode(hello_data: np.ndarray):
+test_cases = [
+    ("HELLO WORLD", ".... . .-.. .-.. ---|.-- --- .-. .-.. -.."),
+    ("CQ", "-.-. --.-"),
+    ("E", "."),
+    ("M", "--"),
+    ("I", ".."),
+]
+
+
+@pytest.mark.parametrize("expected, code", test_cases)
+def test_decode(expected, code):
     """Dummy data decoding works"""
-    received = MorseCode(hello_data).decode()
-    assert received == "HELLO WORLD"
+    data = _dash_dot_to_square_data(code)
+    received = MorseCode(data, 44100).decode()
+
+    assert received == expected
+
+
+@pytest.mark.parametrize("expected, code", [("E", "."), ("T", "-")])
+def test_decode_char_length_guessed(expected, code, capsys):
+    """Guessing based on 20 wpm can distinguish single-character letters"""
+    data = _dash_dot_to_square_data(code)
+
+    received = MorseCode(data, 44100).decode()
+    captured = capsys.readouterr()
+
+    assert received == expected
+    assert captured.err == "WARNING: too little data, guessing based on 20 wpm"
+
+
+def test_decode_unable_to_guess_exit():
+    """Raise error if unable to guess dash/dot"""
+    data = _dash_dot_to_square_data(".")
+
+    with pytest.raises(UserWarning):
+        MorseCode(data).decode()
+
+
+def test_decode_empty_input():
+    """Empty input results in empty output"""
+    received = MorseCode(np.array([], dtype="int"), 44100).decode()
+    assert received == ""
 
 
 def test_morse_to_char():
@@ -116,17 +158,7 @@ def test_on_off_samples(
 
 def test_on_off_samples_no_padding(hello_data: np.ndarray, hello_world_morse: str):
     """Test that output is equal, whether or not there is empty space at start/end"""
-    test_str = (
-        hello_world_morse.replace(" ", "00")
-        .replace("|", "000000")
-        .replace(".", "10")
-        .replace("-", "1110")
-    )
-    test_str = test_str[: len(test_str) - 1]  # remove final zero
-
-    hello_data_no_pad = np.repeat(
-        np.array([int(i) for i in test_str]), 44100 * 60 // 1000
-    )
+    hello_data_no_pad = _dash_dot_to_square_data(hello_world_morse, False)
 
     # pylint: disable=protected-access
     expected_on, expected_off = MorseCode(hello_data)._on_off_samples()
