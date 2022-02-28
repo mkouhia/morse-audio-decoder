@@ -72,7 +72,6 @@ def test_smoothed_power_uint8():
     ).astype(np.uint8)
 
     received = smoothed_power(data, 44100 // 600 * 4)
-    print(len(received))
     expected = (np.ones(len(data) - 44100 // 600 * 4 + 1) / np.sqrt(2) * 128).astype(
         np.uint8
     )

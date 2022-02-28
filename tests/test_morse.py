@@ -159,6 +159,7 @@ def test_break_spaces(hello_world_morse: str, off_samples: np.ndarray):
 
     word_space_idx = np.nonzero(np.array(list("HELLO WORLD")) == " ")[0]
 
+    # pylint: disable=protected-access
     received_cb, received_wb = MorseCode(np.empty(1))._break_spaces(off_samples)
 
     assert_array_equal(received_cb, char_break_idx)
