@@ -79,7 +79,7 @@ class MorseCode:
         return cls._morse_to_char
 
     def _on_off_samples(self) -> tuple[np.ndarray, np.ndarray]:
-        """Calculate signal timings
+        """Calculate signal ON/OFF durations
 
         Locate rising and falling edges in square wave at self.data. Calculate
         number of samples in each ON / OFF period.
@@ -94,9 +94,13 @@ class MorseCode:
         rising_idx = np.nonzero(square_diff == 1)[0]
         falling_idx = np.nonzero(square_diff == -1)[0]
 
-        # Case: data starts with ON
+        # Case: data starts with ON - it started one sample before index 0
         if falling_idx[0] < rising_idx[0]:
-            rising_idx = np.insert(rising_idx, 0, 0)
+            rising_idx = np.insert(rising_idx, 0, -1)
+
+        # Case: data ends with ON
+        if rising_idx[-1] > falling_idx[-1]:
+            falling_idx = np.insert(falling_idx, len(falling_idx), len(self.data) - 1)
 
         on_samples = falling_idx - rising_idx
         off_samples = rising_idx[1:] - falling_idx[: len(falling_idx) - 1]

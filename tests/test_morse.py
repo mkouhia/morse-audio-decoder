@@ -115,6 +115,28 @@ def test_on_off_samples(
     assert_array_equal(received_off, off_samples)
 
 
+def test_on_off_samples_no_padding(hello_data: np.ndarray, hello_world_morse: str):
+    """Test that output is equal, whether or not there is empty space at start/end"""
+    test_str = (
+        hello_world_morse.replace(" ", "00")
+        .replace("|", "000000")
+        .replace(".", "10")
+        .replace("-", "1110")
+    )
+    test_str = test_str[: len(test_str) - 1]  # remove final zero
+
+    hello_data_no_pad = np.repeat(
+        np.array([int(i) for i in test_str]), 44100 * 60 // 1000
+    )
+
+    # pylint: disable=protected-access
+    expected_on, expected_off = MorseCode(hello_data)._on_off_samples()
+    received_on, received_off = MorseCode(hello_data_no_pad)._on_off_samples()
+
+    assert_array_equal(received_on, expected_on)
+    assert_array_equal(received_off, expected_off)
+
+
 def test_dash_dot_characters(hello_world_morse: str):
     """Sample length to dash/dot conversion"""
     dash_dots = hello_world_morse.replace(" ", "").replace("|", "")
