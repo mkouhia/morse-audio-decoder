@@ -70,7 +70,6 @@ def test_from_wavfile_8bit(wav_file_8bit: Path):
     assert len(received.data) > 0
 
 
-@pytest.mark.skip("Not implemented")
 def test_decode(hello_data: np.ndarray):
     """Dummy data decoding works"""
     received = MorseCode(hello_data).decode()

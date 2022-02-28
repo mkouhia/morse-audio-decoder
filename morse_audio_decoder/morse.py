@@ -56,7 +56,11 @@ class MorseCode:
         Returns:
             str: Morse code content, in plain language
         """
-        raise NotImplementedError()
+        on_samples, off_samples = self._on_off_samples()
+        dash_dot_chars = self._dash_dot_characters(on_samples)
+        char_break_idx, word_space_idx = self._break_spaces(off_samples)
+        morse_words = self._morse_words(dash_dot_chars, char_break_idx, word_space_idx)
+        return self._translate(morse_words)
 
     @classmethod
     @property
