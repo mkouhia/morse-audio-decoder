@@ -1,6 +1,6 @@
 # Morse audio decoder
 
-This program is in solution to [Wunderdog Wundernut vol. 11](wundernut), whose instructions can be found in [their GitHub](wundernut-11-github).
+This program is in solution to [Wunderdog Wundernut vol. 11][wundernut], whose instructions can be found in [their GitHub][wundernut-11-github].
 
 The program reads wav audio file, and outputs decoded morse code in standard output.
 
@@ -54,7 +54,7 @@ See program help with command line flag `-h`:
 
 ## Technical description
 
-Exploratory data analysis and first program implementation is performed in [this jupyter notebook](notebooks/2022-02-23%20Wundernut%2011%20exploration.ipynb).
+Exploratory data analysis and first program implementation is performed in [this jupyter notebook][initial-notebook].
 
 
 ### Restrictions
@@ -76,7 +76,7 @@ If the decoder were to be extended to noisy inputs with major differences, at le
 
 Requirements:
 - Python 3.10
-- Poetry (see [installation instructions](poetry-install))
+- Poetry (see [installation instructions][poetry-install])
 
 Dependencies:
 - Numpy
@@ -111,4 +111,5 @@ Optionally, html test coverage reports can be produced with
 
 [wundernut]: https://www.wunderdog.fi/wundernut
 [wundernut-11-github]: https://github.com/wunderdogsw/wundernut-vol11
+[initial-notebook]: notebooks/2022-02-23%20Wundernut%2011%20exploration.ipynb
 [poetry-install]: https://python-poetry.org/docs/#installation
