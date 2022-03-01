@@ -72,7 +72,7 @@ def test_main_raises(mocker, tmp_path: Path, capsys):
 
 
 def test_main_not_existing():
-    """When file is not existing, raise warning"""
+    """When file is not existing, exit"""
     with pytest.raises(SystemExit):
         main(["not-existing-filename"])
 
