@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "morse-audio-decoder"
-version = "0.0.1"
+version = "0.1.0"
 description = "Decode morse code from input audio file"
 authors = ["Mikko Kouhia <mikko.kouhia@iki.fi>"]
 license = "MIT"

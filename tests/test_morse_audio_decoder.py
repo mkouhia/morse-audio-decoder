@@ -14,7 +14,7 @@ def test_version():
 
     Make sure to update this test whenever release is made
     """
-    assert __version__ == "0.0.1"
+    assert __version__ == "0.1.0"
 
 
 def test_main(mocker, tmp_path: Path, capsys):
