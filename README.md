@@ -50,6 +50,15 @@ See program help with command line flag `-h`:
     options:
     -h, --help  show this help message and exit
 
+### Usage in Python
+
+```python
+from morse_audio_decoder.morse import MorseCode
+
+morse_code = MorseCode.from_wavfile("/path/to/file.wav")
+out = morse_code.decode()
+print(out)
+```
 
 
 ## Technical description
