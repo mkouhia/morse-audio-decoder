@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "morse-audio-decoder"
-version = "0.1.0"
+version = "0.1.1"
 description = "Decode morse code from input audio file"
 readme = "README.md"
 repository = "https://github.com/mkouhia/morse-audio-decoder"
