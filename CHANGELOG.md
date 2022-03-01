@@ -15,4 +15,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tests for all methods
 
 [Unreleased]: https://github.com/mkouhia/morse-audio-decoder/compare/v0.1.0...HEAD
-[0.0.1]: https://github.com/mkouhia/morse-audio-decoder/releases/tag/v0.0.1
+[0.1.0]: https://github.com/mkouhia/morse-audio-decoder/releases/tag/v0.1.0
