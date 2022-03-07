@@ -6,6 +6,9 @@ The program reads wav audio file, and outputs decoded morse code in standard out
 
 ## Quickstart
 
+### Requirements
+For now, only Python 3.10 is supported.
+
 ### Installation
 
 #### Option 1 - pip
